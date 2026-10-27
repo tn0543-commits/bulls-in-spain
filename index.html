@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Running of the Bulls in Spain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-black: #101010;
+            --es-red: #C8102E;
+            --dark-crimson: #8B0000;
+            --gold: #D4AF37;
+            --ivory: #F5F0E6;
+            --white: #FFFFFF;
+        }
+
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+            font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+            background-color: var(--bg-black);
+            color: var(--white);
+            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, var(--bg-black) 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Typography sizing for Smart Boards */
+        h1 { font-size: clamp(60px, 6vw, 90px); font-weight: bold; line-height: 1.1; }
+        h2 { font-size: clamp(34px, 4vw, 44px); font-weight: bold; letter-spacing: 0.05em; }
+        .text-story { font-size: clamp(26px, 3vw, 30px); line-height: 1.6; }
+        .text-vocab { font-size: clamp(26px, 3vw, 30px); font-weight: bold; }
+        .text-btn { font-size: clamp(22px, 2.5vw, 26px); font-weight: bold; }
+        .text-question { font-size: clamp(26px, 3vw, 30px); font-weight: bold; }
+        .text-choice { font-size: clamp(24px, 2.8vw, 28px); }
+        .text-instruction { font-size: clamp(20px, 2.2vw, 22px); }
+
+        .text-es-red { color: var(--es-red); }
+        .text-gold { color: var(--gold); }
+        .bg-es-red { background-color: var(--es-red); }
+        .bg-ivory { background-color: var(--ivory); color: var(--bg-black); }
+        .border-es-red { border-color: var(--es-red); }
+        .border-gold { border-color: var(--gold); }
+        
+        .shadow-elegant { box-shadow: 0 10px 30px -10px rgba(200, 16, 46, 0.2); }
+        .shadow-gold { box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15); }
+
+        .btn-primary {
+            background-color: var(--es-red);
+            color: var(--white);
+            border: 2px solid var(--es-red);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 2px solid var(--gold);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-secondary:active { background-color: rgba(212, 175, 55, 0.1); }
+        
+        .btn-nav {
+            background-color: transparent;
+            color: #888;
+            border: 2px solid transparent;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: clamp(18px, 2vw, 24px);
+            font-weight: bold;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-nav.active {
+            color: var(--white);
+            border-color: var(--es-red);
+            background-color: rgba(200, 16, 46, 0.1);
+        }
+        
+        .vocab-word-highlight { color: var(--es-red); font-weight: bold; }
+        .hidden-element { display: none !important; }
+
+        /* Smart board Scrollbar */
+        .smart-scroll::-webkit-scrollbar { width: 24px; }
+        .smart-scroll::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 12px; }
+        .smart-scroll::-webkit-scrollbar-thumb { background: var(--dark-crimson); border-radius: 12px; border: 4px solid #1a1a1a; }
+        .smart-scroll::-webkit-scrollbar-thumb:hover { background: var(--es-red); }
+        
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1.25rem;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: white;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .option-btn:disabled { cursor: not-allowed; }
+        .option-correct { background-color: #065f46 !important; border-color: #10b981 !important; }
+        .option-incorrect { background-color: #7f1d1d !important; border-color: #ef4444 !important; }
+
+        .page-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1rem 2rem;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Sequence of Events Specifics */
+        .seq-card {
+            background: #1a1a1a;
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-size: clamp(24px, 2.5vw, 28px);
+        }
+        .seq-arrows button {
+            background: var(--dark-crimson);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 50px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .seq-arrows button:active { background: var(--es-red); }
+        .seq-arrows button:disabled { background: #333; cursor: not-allowed; opacity: 0.5; }
+        
+        .timer-text { font-size: 80px; font-weight: bold; line-height: 1; font-family: monospace; }
+        .timer-urgent { color: var(--es-red); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .rule-card { background: rgba(0,0,0,0.5); border-left: 6px solid var(--es-red); padding: 1.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+    <nav class="w-full bg-[#101010] border-b-2 border-dark-crimson px-6 py-4 flex justify-between items-center z-50 shadow-md flex-shrink-0">
+        <div class="text-gold font-bold text-2xl uppercase tracking-widest hidden lg:block">
+            San Fermín
+        </div>
+        <div class="flex gap-2 md:gap-4 mx-auto">
+            <button class="btn-nav active" onclick="switchSection('home', this)">HOME</button>
+            <button class="btn-nav" onclick="switchSection('vocabulary', this)">VOCABULARY</button>
+            <button class="btn-nav" onclick="switchSection('story', this)">STORY</button>
+            <button class="btn-nav" onclick="switchSection('quiz', this)">QUIZ</button>
+            <button class="btn-nav" onclick="switchSection('sequence', this)">SEQUENCE OF EVENTS</button>
+        </div>
+        <button onclick="toggleTeacherPanel()" class="btn-secondary text-instruction !p-2 !border-gray-600 hover:!border-gold" title="Teacher Controls">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        </button>
+    </nav>
+
+    <section id="home" class="page-section justify-center items-center text-center relative">
+        <div class="absolute inset-0 z-0 flex justify-center items-center opacity-10 pointer-events-none overflow-hidden">
+            <div class="w-[800px] h-[800px] border-[1px] border-dark-crimson rounded-full absolute -top-1/4 -right-1/4 opacity-30"></div>
+            <div class="w-[600px] h-[600px] border-[1px] border-gold rounded-full absolute -bottom-1/4 -left-1/4 opacity-20"></div>
+        </div>
+        <div class="z-10 max-w-6xl mx-auto flex flex-col items-center w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-48 h-48 md:w-72 md:h-72 mb-8 text-es-red drop-shadow-[0_0_20px_rgba(200,16,46,0.8)]" fill="currentColor">
+                <path d="M434 78.4l-14.8 11.2c-15.6 11.8-33.8 19.9-53 23.7l-47.5 9.5a183.1 183.1 0 0 0-41.2-24c-25-10.1-52.6-14-80.4-11.2-22.1 2.3-43.6 8.8-63.7 19.3L111 119a16 16 0 0 0-7.3-6.6l-50.5-21.7c-9-3.9-19.4 1-22.3 10.3l-5 16.3c-2.4 8 1 16.8 8.1 21.6l37 25a176.7 176.7 0 0 0-33.5 54 186.2 186.2 0 0 0 25.1 184.2c6.1 8 15.6 12.8 25.7 12.8h1.6c11.9-.5 22.8-7.3 28.5-17.9l22.2-41.3c3.4-6.3 3.6-13.8.5-20.2-28.5-59.5-21-129.7 19.1-182.2l39 42.4c16.3 17.8 40 26.6 64 24.3l61-6.1a182 182 0 0 1 73 13.9l36.5 15.6c14.2 6.1 30.7-1 35.7-15.4l5.3-15.3c3.1-8.9 0-18.9-7.3-24.5l-33.8-26.2c9.2-11 16.8-23.4 22.5-36.8L461 97c3.8-8.8 0-19-8.4-23.2l-18.6-9.3z" />
+            </svg>
+            <p class="text-gold font-bold text-4xl md:text-5xl uppercase tracking-[0.1em] mb-4 drop-shadow-lg text-center leading-snug">
+                Discover the Tradition, Culture, and Story of Spain
+            </p>
+            <h1 class="mb-12 text-white uppercase drop-shadow-2xl text-center font-bold leading-tight mt-4">
+                The Running<br><span class="text-es-red">of the Bulls</span>
+            </h1>
+            <div class="w-64 h-1 bg-gold mb-12 shadow-gold"></div>
+            <button onclick="document.querySelector('.btn-nav:nth-child(2)').click()" class="btn-primary text-btn flex items-center gap-3 !text-3xl !py-5 !px-10 border-2 border-dark-crimson hover:bg-dark-crimson">
+                Start the Lesson
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+    </section>
+
+    <section id="vocabulary" class="page-section hidden-element max-w-7xl mx-auto w-full">
+        <div class="text-center mb-4 flex-shrink-0">
+            <h2 class="uppercase mb-2"><span class="text-es-red">Core</span> Vocabulary</h2>
+            <button id="hide-all-vocab-btn" class="btn-secondary text-instruction" onclick="hideAllVocab()">
+                HIDE ALL TRANSLATIONS / 隱藏所有中文
+            </button>
+        </div>
+        <div class="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4 overflow-hidden">
+            <!-- New Vocab Generated Here -->
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">novel</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">小說</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">describe</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">描述</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">fabulous</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">極好的；極棒的</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">rocket</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">沖天炮；火箭</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">signal</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">示意；打信號</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">corral</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">畜欄；牛欄</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">release</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">釋放</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">handkerchief</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">領巾；手帕</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">bullring</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">斗牛場</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">distance</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">距離</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">average</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">平均的</div>
+            </div>
+            <div class="bg-[#1a1a1a] border-t-4 border-es-red rounded-lg p-3 flex flex-col justify-center items-center text-center shadow-elegant h-full">
+                <span class="text-vocab text-white mb-auto mt-1">indicate</span>
+                <button class="btn-secondary text-instruction w-full my-2 !py-1" onclick="toggleVocab(this)">SHOW 中文</button>
+                <div class="hidden-element text-gold text-vocab font-bold mb-1">表示；顯示</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="story" class="page-section hidden-element max-w-6xl mx-auto w-full">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 flex-shrink-0">
+            <h2 class="text-3xl md:text-4xl">The Story: <span class="text-es-red">The Running of the Bulls</span></h2>
+            <button class="btn-primary text-instruction whitespace-nowrap !py-2" onclick="toggleStoryTranslation()">
+                SHOW CHINESE TRANSLATION / 顯示中文翻譯
+            </button>
+        </div>
+        <div class="flex-1 smart-scroll overflow-y-auto bg-ivory border-l-8 border-es-red rounded-r-2xl p-8 md:p-12 shadow-gold pb-12 mb-4 relative">
+            <div class="text-story space-y-8 text-black">
+                <p>What’s Spain famous for? The Running of the Bulls, of course! The Running of the Bulls, also called the festival of San Fermín, begins on July 6th every year and ends on July 14th. The nine-day-long activity became so well-known after what an American writer, Ernest Hemingway, wrote in his <span class="vocab-word-highlight">novel</span> The Sun Also Rises in 1926. He <span class="vocab-word-highlight">describe</span>d the <span class="vocab-word-highlight">fabulous</span> experience of watching the bulls run on the street during his trip.</p>
+                <p>The bull run takes place at 8 o’clock every morning. The first sound of the <span class="vocab-word-highlight">rocket</span> <span class="vocab-word-highlight">signal</span>s the <span class="vocab-word-highlight">corral</span> where the bulls are kept has been opened. Six angry bulls are <span class="vocab-word-highlight">release</span>d from the corral after the first rocket is fired. Then runners dressed in white pants and shirts with a red <span class="vocab-word-highlight">handkerchief</span> around their necks then start running with the bulls. Not until all the bulls are back to the <span class="vocab-word-highlight">bullring</span> has the running ended. The <span class="vocab-word-highlight">distance</span> between the corral and the bullring is 825 meters and the <span class="vocab-word-highlight">average</span> running time is 3 minutes. As the third rocket is set off, it has <span class="vocab-word-highlight">indicate</span>d that all the bulls have entered the bullring. When the last or the fourth rocket is set off, it means the running has finished.</p>
+            </div>
+            <div id="story-chinese" class="hidden-element mt-10 pt-8 border-t-2 border-gray-300">
+                <h3 class="text-dark-crimson text-3xl font-bold mb-6 tracking-widest">中文翻譯</h3>
+                <div class="text-story space-y-8 text-gray-800 font-bold">
+                    <p>西班牙以什麼聞名？當然是奔牛節！奔牛節，也被稱為聖費爾明節，每年於7月6日開始，到7月14日結束。這個為期九天的活動，在美國作家歐內斯特·海明威於1926年的小說《太陽照常升起》中寫下相關內容後，變得非常著名。他描述了在旅行中觀看公牛在街上奔跑的極棒體驗。</p>
+                    <p>奔牛活動每天早上8點舉行。第一聲沖天炮響起，示意關公牛的畜欄已經打開。第一發沖天炮發射後，六頭憤怒的公牛會從畜欄中被釋放出來。接著，穿著白褲白衫、脖子上圍著紅領巾的跑者們開始與公牛一起奔跑。直到所有公牛都回到鬥牛場，奔跑才會結束。畜欄和鬥牛場之間的距離是825公尺，平均奔跑時間為3分鐘。當第三發沖天炮被點燃時，表示所有公牛都已進入鬥牛場。當最後一發或第四發沖天炮被點燃時，這意味著奔牛活動已經結束。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quiz" class="page-section hidden-element max-w-5xl mx-auto w-full">
+        <div class="text-center mb-6 flex-shrink-0 flex justify-between items-end">
+            <h2 class="text-es-red text-3xl font-bold uppercase tracking-widest">Story Challenge</h2>
+            <div id="quiz-progress" class="text-gold font-bold text-2xl">Question 1 of 10</div>
+        </div>
+        <div id="single-question-container" class="flex-1 flex flex-col justify-center bg-[#1a1a1a] rounded-xl p-8 border border-gray-800 shadow-lg relative overflow-hidden">
+            <!-- Injected via JS -->
+        </div>
+        <div class="mt-6 flex justify-between items-center flex-shrink-0">
+            <button id="btn-prev-q" class="btn-secondary text-btn flex items-center gap-2" onclick="changeQuestion(-1)" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg> Previous
+            </button>
+            <button class="btn-secondary !border-gray-600 text-instruction" onclick="resetQuiz()">RESET QUIZ / 重置測驗</button>
+            <button id="btn-next-q" class="btn-primary text-btn flex items-center gap-2" onclick="changeQuestion(1)">
+                Next <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+    </section>
+
+    <section id="sequence" class="page-section hidden-element max-w-6xl mx-auto w-full relative">
+        
+        <!-- Screen 1: Intro -->
+        <div id="seq-intro" class="flex-1 flex flex-col justify-center items-center text-center">
+            <h2 class="text-es-red text-5xl md:text-6xl font-bold uppercase tracking-widest mb-4">Sequence of Events</h2>
+            <h3 class="text-white text-4xl mb-12">The Running of the Bulls</h3>
+            <p class="text-gold text-3xl font-bold mb-12">“Can your group put the events in the correct order?”</p>
+            <div class="flex gap-6">
+                <button class="btn-secondary !text-3xl !py-4 !px-8" onclick="showSeqScreen('seq-rules')">CLASSROOM RULES</button>
+                <button class="btn-primary !text-3xl !py-4 !px-8" onclick="showSeqScreen('seq-groups')">START ACTIVITY</button>
+            </div>
+        </div>
+
+        <!-- Screen 2: Rules -->
+        <div id="seq-rules" class="hidden-element flex-1 flex flex-col h-full overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 flex-shrink-0 gap-4">
+                <h2 class="text-gold text-4xl uppercase mx-auto">Classroom Rules</h2>
+                <button class="btn-secondary text-instruction !py-2 md:absolute md:right-8" onclick="toggleRuleTranslation()">SHOW 中文翻譯</button>
+            </div>
+            <div class="flex-1 overflow-y-auto smart-scroll pr-4 mb-6 text-instruction space-y-4 text-white">
+                <div class="rule-card">
+                    <strong class="text-gold text-2xl">RULE 1: EVERYONE STANDS UP!</strong><br>
+                    <span>All students must stand up. Do not look at the Smart Board while another group is playing. Every group has the same five events.</span>
+                    <div class="rule-zh hidden-element text-gold font-bold mt-2">規則 1：全體起立！所有學生必須站起來。當其他小組在玩的時候，請不要看電子白板。每組都有相同的五個事件。</div>
+                </div>
+                <div class="rule-card">
+                    <strong class="text-gold text-2xl">RULE 2: THE WHOLE GROUP PARTICIPATES!</strong><br>
+                    <span>When your group is called, all members must come to the front and work together.</span>
+                    <div class="rule-zh hidden-element text-gold font-bold mt-2">規則 2：全組參與！輪到你們小組時，所有成員必須到教室前面一起合作。</div>
+                </div>
+                <div class="rule-card">
+                    <strong class="text-gold text-2xl">RULE 3: WORK TOGETHER!</strong><br>
+                    <span>Discuss the events quickly. Arrange them from FIRST to LAST according to the story.</span>
+                    <div class="rule-zh hidden-element text-gold font-bold mt-2">規則 3：團隊合作！快速討論這些事件。根據故事，將它們從「最先」到「最後」排列。</div>
+                </div>
+                <div class="rule-card">
+                    <strong class="text-gold text-2xl">RULE 4: BE FAST AND ACCURATE!</strong><br>
+                    <span>You have 60 seconds to arrange the events. The fastest group to complete the correct sequence wins.</span>
+                    <div class="rule-zh hidden-element text-gold font-bold mt-2">規則 4：快速且準確！你們有 60 秒的時間排列這些事件。最快完成正確順序的小組獲勝。</div>
+                </div>
+                <div class="rule-card">
+                    <strong class="text-gold text-2xl">RULE 5: NO PEEKING!</strong><br>
+                    <span>Groups waiting for their turn must not look at the Smart Board. Listen to the teacher.</span>
+                    <div class="rule-zh hidden-element text-gold font-bold mt-2">規則 5：不准偷看！等待輪到的小組不准看電子白板。請仔細聽老師的指示。</div>
+                </div>
+                <div class="rule-card">
+                    <strong class="text-gold text-2xl">RULE 6: THE CORRECT ORDER WINS!</strong><br>
+                    <span>Speed alone is not enough. Your group must arrange all five events correctly to win.</span>
+                    <div class="rule-zh hidden-element text-gold font-bold mt-2">規則 6：順序正確才能獲勝！只有速度是不夠的。你們小組必須將五個事件全部排列正確才能獲勝。</div>
+                </div>
+            </div>
+            <div class="text-center flex-shrink-0">
+                <button class="btn-primary !text-3xl !py-4 !px-12" onclick="showSeqScreen('seq-groups')">LET'S PLAY!</button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Group Selection & Scoreboard -->
+        <div id="seq-groups" class="hidden-element flex-1 flex flex-col justify-center items-center">
+            <h2 class="text-white text-5xl mb-12">Select a Group</h2>
+            <div class="flex flex-wrap justify-center gap-6 mb-12 w-full max-w-4xl">
+                <button class="btn-primary !text-3xl !py-4 w-[200px]" onclick="startSeqGame(1)">GROUP 1</button>
+                <button class="btn-primary !text-3xl !py-4 w-[200px]" onclick="startSeqGame(2)">GROUP 2</button>
+                <button class="btn-primary !text-3xl !py-4 w-[200px]" onclick="startSeqGame(3)">GROUP 3</button>
+                <button class="btn-primary !text-3xl !py-4 w-[200px]" onclick="startSeqGame(4)">GROUP 4</button>
+                <button class="btn-primary !text-3xl !py-4 w-[200px]" onclick="startSeqGame(5)">GROUP 5</button>
+            </div>
+            
+            <!-- Scoreboard -->
+            <div class="w-full max-w-4xl bg-[#1a1a1a] border-2 border-gold rounded-xl p-6 shadow-elegant">
+                <h3 class="text-gold text-3xl font-bold text-center mb-6 uppercase tracking-widest">Scoreboard & Rankings</h3>
+                <div id="scoreboard-content" class="flex flex-col gap-3 text-2xl text-white">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 4: The Game/Challenge -->
+        <div id="seq-game" class="hidden-element flex-1 flex flex-col">
+            <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                <h2 id="seq-current-group" class="text-gold text-4xl font-bold">Group 1</h2>
+                <div id="seq-timer-display" class="timer-text text-white">60</div>
+                <button id="btn-start-timer" class="btn-primary !text-2xl" onclick="startSeqTimer()">START TIMER</button>
+            </div>
+            
+            <div id="seq-cards-container" class="flex-1 flex flex-col justify-center gap-2 pointer-events-none opacity-50 transition-opacity">
+                <!-- Cards injected via JS -->
+            </div>
+            
+            <div class="text-center mt-6 flex-shrink-0">
+                <button id="btn-submit-seq" class="btn-primary !text-3xl !py-4 !px-12 w-full max-w-md hidden-element shadow-[0_0_15px_rgba(200,16,46,0.6)] animate-[pulse_2s_infinite]" onclick="submitSeq()">FINISH & SUBMIT</button>
+            </div>
+        </div>
+
+        <!-- Screen 5: Result -->
+        <div id="seq-result" class="hidden-element flex-1 flex flex-col justify-center items-center text-center p-4">
+            <div class="flex-shrink-0">
+                <h2 id="result-title" class="text-5xl md:text-6xl font-bold uppercase mb-4"></h2>
+                <p id="result-desc" class="text-2xl md:text-3xl text-white mb-6"></p>
+            </div>
+            
+            <div id="seq-correct-answer" class="w-full max-w-4xl bg-[#1a1a1a] border-2 border-gold rounded-xl p-6 mb-6 text-left shadow-elegant flex-1 overflow-y-auto smart-scroll">
+                <h3 class="text-gold text-2xl font-bold mb-4 uppercase text-center tracking-widest">The Correct Sequence</h3>
+                <div id="seq-correct-list" class="space-y-4 text-xl md:text-2xl text-white">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <button class="btn-secondary !text-3xl !py-4 !px-8 flex-shrink-0" onclick="showSeqScreen('seq-groups')">RETURN TO GROUPS</button>
+        </div>
+
+    </section>
+
+    <div id="teacher-panel" class="fixed inset-y-0 right-0 w-[400px] bg-[#1a1a1a] border-l-4 border-es-red shadow-2xl transform translate-x-full transition-transform duration-300 z-50 p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-8 flex-shrink-0">
+            <h3 class="text-3xl font-bold text-white">Teacher Controls</h3>
+            <button onclick="toggleTeacherPanel()" class="text-gray-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="space-y-6 flex-1 overflow-y-auto smart-scroll pr-2">
+            <button onclick="hideAllVocab(); toggleTeacherPanel(); document.querySelector('.btn-nav:nth-child(2)').click()" class="w-full btn-secondary text-instruction text-left !py-4">1. Hide All Vocab</button>
+            <button onclick="toggleStoryTranslation(); toggleTeacherPanel(); document.querySelector('.btn-nav:nth-child(3)').click()" class="w-full btn-secondary text-instruction text-left !py-4">2. Toggle Story Translation</button>
+            <button onclick="hideAllQuestionTranslations(); toggleTeacherPanel(); document.querySelector('.btn-nav:nth-child(4)').click()" class="w-full btn-secondary text-instruction text-left !py-4">3. Hide Question Translations</button>
+            <button onclick="toggleAnswerKey()" class="w-full btn-primary text-instruction text-left !py-4">4. Show / Hide Answer Key</button>
+            <button onclick="resetQuiz(); toggleTeacherPanel(); document.querySelector('.btn-nav:nth-child(4)').click()" class="w-full btn-secondary text-instruction text-left !py-4">5. Reset Quiz</button>
+            <button onclick="resetSequenceGame(); toggleTeacherPanel(); document.querySelector('.btn-nav:nth-child(5)').click()" class="w-full btn-secondary text-instruction text-left !py-4">6. Reset Sequence Game</button>
+            
+            <div id="answer-key" class="hidden-element mt-8 bg-dark-crimson p-4 rounded-xl border-2 border-es-red">
+                <h4 class="text-gold font-bold mb-4 text-center text-xl">ANSWER KEY</h4>
+                <div id="answer-key-content" class="space-y-4 text-lg">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { q: "What is the Running of the Bulls also called?", zh: "奔牛節也被稱為什麼？", options: ["The festival of Summer", "The festival of San Fermín", "The Running Festival", "The Sun Also Rises"], correct: 1, explanation: "The passage mentions it is also called the festival of San Fermín." },
+            { q: "When does the festival of San Fermín begin every year?", zh: "聖費爾明節每年什麼時候開始？", options: ["June 6th", "July 6th", "July 14th", "August 8th"], correct: 1, explanation: "It begins on July 6th every year." },
+            { q: "How long is the festival activity?", zh: "節慶活動為期多久？", options: ["Three days", "Six days", "Nine days", "Fourteen days"], correct: 2, explanation: "The text describes it as a 'nine-day-long activity'." },
+            { q: "Who wrote the novel 'The Sun Also Rises'?", zh: "誰寫了《太陽照常升起》這本小說？", options: ["A Spanish runner", "Ernest Hemingway", "San Fermín", "An English teacher"], correct: 1, explanation: "American writer Ernest Hemingway wrote the novel." },
+            { q: "When does the bull run take place?", zh: "奔牛活動在什麼時候舉行？", options: ["At 6 o’clock every morning", "At 8 o’clock every morning", "At noon every day", "At 8 o'clock at night"], correct: 1, explanation: "The bull run takes place at 8 o’clock every morning." },
+            { q: "What does the first rocket signal?", zh: "第一發沖天炮示意什麼？", options: ["The running is finished", "The runners should run", "The corral has been opened", "The bulls are angry"], correct: 2, explanation: "The first sound of the rocket signals the corral where the bulls are kept has been opened." },
+            { q: "How many bulls are released from the corral?", zh: "有幾頭公牛從畜欄被釋放出來？", options: ["Three", "Four", "Six", "Eight"], correct: 2, explanation: "Six angry bulls are released from the corral after the first rocket is fired." },
+            { q: "What do the runners wear around their necks?", zh: "跑者脖子上圍著什麼？", options: ["A red handkerchief", "A white shirt", "A gold chain", "A black handkerchief"], correct: 0, explanation: "Runners dress in white pants and shirts with a red handkerchief around their necks." },
+            { q: "What is the distance between the corral and the bullring?", zh: "畜欄和鬥牛場之間的距離是多少？", options: ["300 meters", "500 meters", "825 meters", "1000 meters"], correct: 2, explanation: "The distance between the corral and the bullring is 825 meters." },
+            { q: "What indicates that all the bulls have entered the bullring?", zh: "什麼表示所有公牛都已進入鬥牛場？", options: ["The first rocket", "The second rocket", "The third rocket", "The fourth rocket"], correct: 2, explanation: "As the third rocket is set off, it has indicated that all the bulls have entered the bullring." }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(10).fill(null);
+
+        function switchSection(sectionId, btnElement) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden-element'));
+            document.getElementById(sectionId).classList.remove('hidden-element');
+            document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+        }
+
+        function initQuiz() {
+            const answerKeyContainer = document.getElementById('answer-key-content');
+            answerKeyContainer.innerHTML = '';
+            const letters = ['A', 'B', 'C', 'D'];
+
+            quizData.forEach((item, qIndex) => {
+                const keyItem = document.createElement('div');
+                keyItem.className = "p-2 border-b border-gray-600 last:border-0";
+                keyItem.innerHTML = `<span class="text-gold font-bold">Q${qIndex + 1}:</span> ${letters[item.correct]}. ${item.options[item.correct]}`;
+                answerKeyContainer.appendChild(keyItem);
+            });
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const container = document.getElementById('single-question-container');
+            const item = quizData[currentQuestionIndex];
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            document.getElementById('quiz-progress').innerText = `Question ${currentQuestionIndex + 1} of 10`;
+            document.getElementById('btn-prev-q').disabled = currentQuestionIndex === 0;
+            document.getElementById('btn-prev-q').style.opacity = currentQuestionIndex === 0 ? "0.3" : "1";
+            
+            const isLast = currentQuestionIndex === quizData.length - 1;
+            const nextBtn = document.getElementById('btn-next-q');
+            nextBtn.innerHTML = isLast ? 'Finish Quiz <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>' : 'Next <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, oIndex) => {
+                const isCorrect = oIndex === item.correct;
+                let btnClasses = "option-btn text-choice mb-4";
+                let disabled = "";
+                if (userAnswers[currentQuestionIndex] !== null) {
+                    disabled = "disabled";
+                    if (oIndex === item.correct) btnClasses += " option-correct";
+                    else if (oIndex === userAnswers[currentQuestionIndex]) btnClasses += " option-incorrect";
+                    else btnClasses += " opacity-50";
+                }
+                optionsHtml += `<button class="${btnClasses}" ${disabled} onclick="handleAnswer(this, ${oIndex}, ${isCorrect})"><span class="font-bold text-gold mr-4">${letters[oIndex]}.</span> ${opt}</button>`;
+            });
+
+            let feedbackHtml = '';
+            let feedbackClass = 'hidden-element mt-auto p-6 rounded-lg text-instruction';
+            if (userAnswers[currentQuestionIndex] !== null) {
+                const answeredCorrectly = userAnswers[currentQuestionIndex] === item.correct;
+                feedbackClass = answeredCorrectly 
+                    ? "mt-auto p-6 rounded-lg text-instruction bg-[#064e3b] border-2 border-green-500" 
+                    : "mt-auto p-6 rounded-lg text-instruction bg-[#450a0a] border-2 border-red-500";
+                
+                feedbackHtml = answeredCorrectly
+                    ? `<span class="font-bold text-green-400 text-3xl block mb-2">✓ Correct!</span> ${item.explanation}`
+                    : `<span class="font-bold text-red-400 text-3xl block mb-2">✗ Incorrect.</span> <span class="text-white">The correct answer was: <strong>${item.options[item.correct]}</strong>. <br> ${item.explanation}</span>`;
+            }
+
+            container.innerHTML = `
+                <div class="flex justify-between items-start gap-4 mb-6">
+                    <h3 class="text-question leading-tight"><span class="text-es-red font-bold mr-2">${currentQuestionIndex + 1}.</span> ${item.q}</h3>
+                    <button class="btn-secondary text-instruction whitespace-nowrap !py-2" onclick="toggleQuestionTranslation()">SHOW 中文翻譯</button>
+                </div>
+                <div id="q-zh-current" class="hidden-element text-gold text-2xl font-bold mb-6 tracking-wide border-l-4 border-gold pl-4">${item.zh}</div>
+                <div class="options-container w-full flex-1">${optionsHtml}</div>
+                <div id="feedback-current" class="${feedbackClass}">${feedbackHtml}</div>
+            `;
+        }
+
+        function changeQuestion(dir) {
+            const newIndex = currentQuestionIndex + dir;
+            if (newIndex >= 0 && newIndex < quizData.length) {
+                currentQuestionIndex = newIndex;
+                renderCurrentQuestion();
+            } else if (newIndex >= quizData.length) {
+                document.getElementById('single-question-container').innerHTML = `
+                    <div class="text-center space-y-6">
+                        <h2 class="text-gold text-5xl font-bold mb-6">Quiz Complete!</h2>
+                        <p class="text-3xl">You have reviewed all 10 questions.</p>
+                        <button class="btn-primary text-btn mt-8" onclick="resetQuiz()">RESTART QUIZ</button>
+                    </div>
+                `;
+                document.getElementById('quiz-progress').innerText = "Finished";
+                document.getElementById('btn-next-q').disabled = true;
+                document.getElementById('btn-next-q').style.opacity = "0.3";
+            }
+        }
+
+        function handleAnswer(btn, selectedIndex, isCorrect) {
+            if (userAnswers[currentQuestionIndex] !== null) return; 
+            userAnswers[currentQuestionIndex] = selectedIndex;
+            
+            const container = btn.parentElement;
+            const feedback = document.getElementById('feedback-current');
+            const buttons = container.querySelectorAll('.option-btn');
+            const item = quizData[currentQuestionIndex];
+
+            buttons.forEach(b => { b.disabled = true; b.classList.add('opacity-50'); });
+            btn.classList.remove('opacity-50');
+            
+            if (isCorrect) {
+                btn.classList.add('option-correct');
+                feedback.innerHTML = `<span class="font-bold text-green-400 text-3xl block mb-2">✓ Correct!</span> ${item.explanation}`;
+                feedback.className = "mt-auto p-6 rounded-lg text-instruction bg-[#064e3b] border-2 border-green-500";
+            } else {
+                btn.classList.add('option-incorrect');
+                feedback.innerHTML = `<span class="font-bold text-red-400 text-3xl block mb-2">✗ Incorrect.</span> <span class="text-white">The correct answer was: <strong>${item.options[item.correct]}</strong>. <br> ${item.explanation}</span>`;
+                feedback.className = "mt-auto p-6 rounded-lg text-instruction bg-[#450a0a] border-2 border-red-500";
+                buttons[item.correct].classList.remove('opacity-50');
+                buttons[item.correct].classList.add('option-correct');
+            }
+            feedback.classList.remove('hidden-element');
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers = new Array(10).fill(null);
+            document.getElementById('btn-next-q').disabled = false;
+            document.getElementById('btn-next-q').style.opacity = "1";
+            renderCurrentQuestion();
+        }
+
+        function toggleQuestionTranslation() {
+            const el = document.getElementById('q-zh-current');
+            const btn = el.previousElementSibling.querySelector('button');
+            if (el.classList.contains('hidden-element')) {
+                el.classList.remove('hidden-element');
+                btn.innerText = "HIDE 中文翻譯";
+            } else {
+                el.classList.add('hidden-element');
+                btn.innerText = "SHOW 中文翻譯";
+            }
+        }
+
+        function hideAllQuestionTranslations() {
+            const el = document.getElementById('q-zh-current');
+            if (el && !el.classList.contains('hidden-element')) {
+                el.classList.add('hidden-element');
+                el.previousElementSibling.querySelector('button').innerText = "SHOW 中文翻譯";
+            }
+        }
+
+        function toggleVocab(btn) {
+            const target = btn.nextElementSibling;
+            if (target.classList.contains('hidden-element')) {
+                target.classList.remove('hidden-element');
+                btn.innerText = "HIDE 中文";
+            } else {
+                target.classList.add('hidden-element');
+                btn.innerText = "SHOW 中文";
+            }
+        }
+
+        function hideAllVocab() {
+            const translations = document.querySelectorAll('#vocabulary .hidden-element, #vocabulary .text-gold');
+            const buttons = document.querySelectorAll('#vocabulary .btn-secondary:not(#hide-all-vocab-btn)');
+            translations.forEach(el => { if(el.id !== 'hide-all-vocab-btn') el.classList.add('hidden-element'); });
+            buttons.forEach(btn => btn.innerText = "SHOW 中文");
+        }
+
+        function toggleStoryTranslation() {
+            const el = document.getElementById('story-chinese');
+            const btn = document.querySelector('#story .btn-primary');
+            if (el.classList.contains('hidden-element')) {
+                el.classList.remove('hidden-element');
+                btn.innerText = "HIDE CHINESE TRANSLATION / 隱藏中文翻譯";
+                setTimeout(() => el.parentElement.scrollBy({top: 300, behavior: 'smooth'}), 100);
+            } else {
+                el.classList.add('hidden-element');
+                btn.innerText = "SHOW CHINESE TRANSLATION / 顯示中文翻譯";
+            }
+        }
+
+        function toggleTeacherPanel() {
+            document.getElementById('teacher-panel').classList.toggle('translate-x-full');
+        }
+        function toggleAnswerKey() {
+            document.getElementById('answer-key').classList.toggle('hidden-element');
+        }
+
+        function toggleRuleTranslation() {
+            const zhElements = document.querySelectorAll('.rule-zh');
+            const btn = document.querySelector('#seq-rules .btn-secondary');
+            let isHidden = zhElements[0].classList.contains('hidden-element');
+            
+            zhElements.forEach(el => {
+                if (isHidden) el.classList.remove('hidden-element');
+                else el.classList.add('hidden-element');
+            });
+            
+            btn.innerText = isHidden ? "HIDE 中文翻譯" : "SHOW 中文翻譯";
+        }
+
+
+        const sequenceCorrectAnswers = [
+            { id: 1, text: "The San Fermín festival begins in Spain." },
+            { id: 2, text: "The first rocket signals that the corral is open." },
+            { id: 3, text: "Six bulls are released from the corral." },
+            { id: 4, text: "Runners in white clothes and red handkerchiefs run with the bulls." },
+            { id: 5, text: "The third and fourth rockets signal the final stages of the bull run." }
+        ];
+        
+        let currentSeq = [];
+        let seqActiveGroup = 0;
+        let seqTimerInterval = null;
+        let seqTimeLeft = 60;
+        let seqGroupScores = { 1: null, 2: null, 3: null, 4: null, 5: null }; // null = not played, {time, correct}
+
+        function showSeqScreen(screenId) {
+            const screens = ['seq-intro', 'seq-rules', 'seq-groups', 'seq-game', 'seq-result'];
+            screens.forEach(s => document.getElementById(s).classList.add('hidden-element'));
+            document.getElementById(screenId).classList.remove('hidden-element');
+        }
+
+        function startSeqGame(groupNum) {
+            seqActiveGroup = groupNum;
+            document.getElementById('seq-current-group').innerText = `GROUP ${groupNum}`;
+            
+            // Reset state
+            seqTimeLeft = 60;
+            updateSeqTimerDisplay();
+            clearInterval(seqTimerInterval);
+            
+            // Shuffle
+            currentSeq = [...sequenceCorrectAnswers].sort(() => Math.random() - 0.5);
+            // Safety: Ensure it's not accidentally correct initially
+            if (currentSeq.every((item, i) => item.id === sequenceCorrectAnswers[i].id)) {
+                currentSeq.reverse(); 
+            }
+            
+            renderSeqCards();
+            
+            // UI state
+            document.getElementById('btn-start-timer').classList.remove('hidden-element');
+            document.getElementById('btn-submit-seq').classList.add('hidden-element');
+            document.getElementById('seq-cards-container').classList.add('opacity-50', 'pointer-events-none');
+            
+            showSeqScreen('seq-game');
+        }
+
+        function renderSeqCards() {
+            const container = document.getElementById('seq-cards-container');
+            container.innerHTML = '';
+            
+            currentSeq.forEach((item, index) => {
+                const isFirst = index === 0;
+                const isLast = index === currentSeq.length - 1;
+                
+                container.innerHTML += `
+                    <div class="seq-card">
+                        <div class="text-gold font-bold text-3xl w-12 text-center">${index + 1}</div>
+                        <div class="flex-1">${item.text}</div>
+                        <div class="seq-arrows flex flex-col gap-1">
+                            <button onclick="moveSeqCard(${index}, -1)" ${isFirst ? 'disabled' : ''}>▲</button>
+                            <button onclick="moveSeqCard(${index}, 1)" ${isLast ? 'disabled' : ''}>▼</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function moveSeqCard(index, direction) {
+            if (index + direction < 0 || index + direction >= currentSeq.length) return;
+            const temp = currentSeq[index];
+            currentSeq[index] = currentSeq[index + direction];
+            currentSeq[index + direction] = temp;
+            renderSeqCards();
+        }
+
+        function startSeqTimer() {
+            document.getElementById('btn-start-timer').classList.add('hidden-element');
+            document.getElementById('btn-submit-seq').classList.remove('hidden-element');
+            document.getElementById('seq-cards-container').classList.remove('opacity-50', 'pointer-events-none');
+            
+            clearInterval(seqTimerInterval);
+            seqTimerInterval = setInterval(() => {
+                seqTimeLeft--;
+                updateSeqTimerDisplay();
+                
+                if (seqTimeLeft <= 0) {
+                    clearInterval(seqTimerInterval);
+                    submitSeq(true); // Force submit due to timeout
+                }
+            }, 1000);
+        }
+
+        function updateSeqTimerDisplay() {
+            const display = document.getElementById('seq-timer-display');
+            display.innerText = seqTimeLeft;
+            if (seqTimeLeft <= 10 && seqTimeLeft > 0) {
+                display.classList.add('timer-urgent');
+            } else {
+                display.classList.remove('timer-urgent');
+            }
+        }
+
+        function submitSeq(isTimeout = false) {
+            clearInterval(seqTimerInterval);
+            const timeTaken = 60 - seqTimeLeft;
+            
+            // Check correctness
+            const isCorrect = currentSeq.every((item, index) => item.id === sequenceCorrectAnswers[index].id);
+            
+            // Update Scoreboard data
+            seqGroupScores[seqActiveGroup] = { correct: isCorrect, time: timeTaken };
+            if (window.saveScoreToCloud) {
+                window.saveScoreToCloud(seqActiveGroup, isCorrect, timeTaken);
+            }
+            updateScoreboardUI();
+            
+            // Show result
+            const titleEl = document.getElementById('result-title');
+            const descEl = document.getElementById('result-desc');
+            
+            if (isCorrect) {
+                titleEl.innerText = "SUCCESS!";
+                titleEl.className = "text-5xl md:text-6xl font-bold uppercase mb-4 text-green-500";
+                descEl.innerText = `Group ${seqActiveGroup} arranged all events correctly in ${timeTaken} seconds!`;
+            } else {
+                titleEl.innerText = isTimeout ? "TIME'S UP!" : "INCORRECT!";
+                titleEl.className = "text-5xl md:text-6xl font-bold uppercase mb-4 text-es-red";
+                descEl.innerText = isTimeout ? `Group ${seqActiveGroup} ran out of time.` : `Group ${seqActiveGroup} submitted an incorrect order.`;
+            }
+            
+            // Populate the correct sequence list for review
+            const correctListEl = document.getElementById('seq-correct-list');
+            correctListEl.innerHTML = '';
+            sequenceCorrectAnswers.forEach((item, index) => {
+                correctListEl.innerHTML += `
+                    <div class="p-3 border-b border-gray-700 last:border-0 flex items-center gap-4">
+                        <span class="text-es-red font-bold text-3xl w-8 text-center">${index + 1}</span>
+                        <span class="flex-1">${item.text}</span>
+                    </div>
+                `;
+            });
+            
+            showSeqScreen('seq-result');
+        }
+
+        function updateScoreboardUI() {
+            const container = document.getElementById('scoreboard-content');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            let teams = [];
+            for (let i = 1; i <= 5; i++) {
+                teams.push({ groupNum: i, score: seqGroupScores[i] });
+            }
+            
+            // Sort Teams: Played first > Correct vs Incorrect > Fastest time
+            teams.sort((a, b) => {
+                if (!a.score && !b.score) return a.groupNum - b.groupNum;
+                if (!a.score) return 1;
+                if (!b.score) return -1;
+                
+                if (a.score.correct && !b.score.correct) return -1;
+                if (!a.score.correct && b.score.correct) return 1;
+                
+                if (a.score.correct && b.score.correct) {
+                    return a.score.time - b.score.time; // Fastest wins
+                }
+                return a.groupNum - b.groupNum; 
+            });
+            
+            let rank = 1;
+            teams.forEach(team => {
+                const el = document.createElement('div');
+                const isWinner = team.score && team.score.correct && rank === 1;
+                el.className = "p-4 rounded-lg flex justify-between items-center transition-all duration-300 " + 
+                    (isWinner ? "bg-dark-crimson border-2 border-gold shadow-gold scale-[1.02]" : "bg-[#2a2a2a] border border-gray-700");
+                
+                let rankHtml = '';
+                let statusHtml = '<span class="text-gray-400">Not Played</span>';
+                
+                if (team.score) {
+                    if (team.score.correct) {
+                        let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                        rankHtml = `<span class="text-3xl font-bold w-12 text-center text-gold drop-shadow-md">${medal}</span>`;
+                        statusHtml = `<span class="text-green-400 font-bold">Correct (${team.score.time}s)</span>`;
+                        rank++;
+                    } else {
+                        rankHtml = `<span class="text-2xl font-bold w-12 text-center text-gray-500">-</span>`;
+                        statusHtml = `<span class="text-es-red font-bold">Incorrect</span>`;
+                    }
+                } else {
+                    rankHtml = `<span class="text-2xl font-bold w-12 text-center text-gray-600">-</span>`;
+                }
+                
+                el.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        ${rankHtml}
+                        <span class="font-bold text-white uppercase tracking-wider text-2xl md:text-3xl">Group ${team.groupNum}</span>
+                    </div>
+                    <div>${statusHtml}</div>
+                `;
+                container.appendChild(el);
+            });
+        }
+        
+        window.updateScoreboardUIWithData = function(cloudScores) {
+            seqGroupScores = { 1: null, 2: null, 3: null, 4: null, 5: null, ...cloudScores };
+            updateScoreboardUI();
+        };
+        
+        function resetSequenceGame() {
+            if (window.resetCloudScores) window.resetCloudScores();
+            seqGroupScores = { 1: null, 2: null, 3: null, 4: null, 5: null };
+            updateScoreboardUI();
+            showSeqScreen('seq-intro');
+        }
+
+        window.onload = () => {
+            initQuiz();
+            updateScoreboardUI(); // Initialize scoreboard render
+        };
+    </script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db, auth;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'running-bulls-seq';
+
+        async function initFirebase() {
+            if (typeof __firebase_config === 'undefined') return;
+            try {
+                const config = JSON.parse(__firebase_config);
+                const app = initializeApp(config);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Authenticate to access Firestore
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Subscribe to real-time scoreboard updates across all devices
+                const scoresRef = collection(db, 'artifacts', appId, 'public', 'data', 'scoreboard');
+                onSnapshot(scoresRef, (snapshot) => {
+                    const cloudScores = {};
+                    snapshot.forEach(d => {
+                        cloudScores[d.data().groupNum] = d.data();
+                    });
+                    if (window.updateScoreboardUIWithData) {
+                        window.updateScoreboardUIWithData(cloudScores);
+                    }
+                }, (error) => console.error("Firebase Sync Error", error));
+
+            } catch(e) {
+                console.error("Firebase init failed:", e);
+            }
+        }
+
+        initFirebase();
+
+        // Exported helper functions for the main script
+        window.saveScoreToCloud = async (groupNum, isCorrect, timeTaken) => {
+            if (!auth?.currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'scoreboard', `group_${groupNum}`);
+                await setDoc(docRef, {
+                    groupNum, 
+                    correct: isCorrect, 
+                    time: timeTaken, 
+                    timestamp: Date.now()
+                });
+            } catch(e) { console.error("Save to cloud failed:", e); }
+        };
+
+        window.resetCloudScores = async () => {
+            if (!auth?.currentUser || !db) return;
+            try {
+                const scoresRef = collection(db, 'artifacts', appId, 'public', 'data', 'scoreboard');
+                const snap = await getDocs(scoresRef);
+                const batch = writeBatch(db);
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+            } catch(e) { console.error("Reset cloud scores failed:", e); }
+        };
+    </script>
+</body>
+</html>
